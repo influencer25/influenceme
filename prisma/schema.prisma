@@ -39,6 +39,7 @@ model InfluencerProfile {
 
   comments     Comment[]
   collaborations CollaborationRequest[]
+  categories     InfluencerCategory[]  // many-to-many relation
 }
 
 model BrandProfile {
@@ -87,12 +88,23 @@ model Comment {
   text         String
   rating       Int          // 1 to 5
   createdAt    DateTime     @default(now())
+  hidden       Boolean   @default(false)
 }
 
 model Category {
   id           Int                 @id @default(autoincrement())
   name         String              @unique
-  influencers  InfluencerProfile[]
+  influencers  InfluencerCategory[]  // many-to-many relation
+}
+
+model InfluencerCategory {
+  influencerId Int
+  categoryId   Int
+
+  influencer   InfluencerProfile @relation(fields: [influencerId], references: [id])
+  category     Category           @relation(fields: [categoryId], references: [id])
+
+  @@id([influencerId, categoryId])
 }
 
 enum Role {
@@ -104,4 +116,59 @@ enum RequestStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+model SocialProfile {
+  id            Int       @id @default(autoincrement())
+  userId        Int       // Link to internal user (influencer)
+  platform      Platform
+  handle        String
+  displayName   String
+  followers     Int
+  profilePicUrl String
+  lastUpdated   DateTime  @default(now())
+
+  posts         Post[]
+  followerStats FollowerSnapshot[]
+}
+
+model Post {
+  id               Int      @id @default(autoincrement())
+  socialProfileId  Int
+  postId           String   // External post/video ID (from YouTube, IG, etc.)
+  title            String
+  thumbnailUrl     String
+  url              String
+  postedAt         DateTime
+  likes            Int
+  comments         Int
+  views            Int
+  shares           Int
+
+  socialProfile    SocialProfile @relation(fields: [socialProfileId], references: [id])
+}
+
+model FollowerSnapshot {
+  id              Int       @id @default(autoincrement())
+  socialProfileId Int
+  followers       Int
+  capturedAt      DateTime  @default(now())
+
+  socialProfile   SocialProfile @relation(fields: [socialProfileId], references: [id])
+}
+
+enum Platform {
+  YOUTUBE
+  INSTAGRAM
+  TIKTOK
+}
+
+model ApiCredential {
+  id            Int       @id @default(autoincrement())
+  userId        Int       // Link to internal user (influencer)
+  platform      Platform
+  accessToken   String    // Encrypt in production
+  refreshToken  String?   // Optional, if the platform supports
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
 }
