@@ -39,7 +39,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   POPULAR_CATEGORIES,
 }) => (
   <form className="w-full max-w-3xl mx-auto mb-10" onSubmit={handleSearch}>
-    <div className="flex flex-col md:flex-row items-center bg-white rounded-2xl shadow-lg px-4 py-4 gap-4 md:gap-0 relative">
+    <div className="search-bar-container">
       {/* Platform Filter */}
       <div className="filter-section platform-filter-section relative w-full md:w-1/4">
         <div className="filter-title text-xs font-semibold text-gray-500 mb-1">Platform</div>
@@ -67,7 +67,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </div>
       {/* Divider */}
-      <div className="hidden md:block w-px h-10 bg-gray-200 mx-4" />
+      <div className="search-bar-divider" />
       {/* Category Filter */}
       <div className="filter-section category-filter-section relative w-full md:w-2/4">
         <div className="filter-title text-xs font-semibold text-gray-500 mb-1 flex items-center justify-between">
@@ -116,7 +116,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </div>
       {/* Divider */}
-      <div className="hidden md:block w-px h-10 bg-gray-200 mx-4" />
+      <div className="search-bar-divider" />
       {/* Search Button */}
       <button type="submit" className="search-btn ml-0 md:ml-4 p-3 rounded-full bg-pink-500 hover:bg-pink-600 transition text-white flex items-center justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
