@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role
+  createdAt DateTime  @default(now())
+
+  influencerProfile InfluencerProfile?
+  brandProfile      BrandProfile?
+}
+
+model InfluencerProfile {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int      @unique
+  category     Category @relation(fields: [categoryId], references: [id])
+  categoryId   Int
+  location     String
+  bio          String
+  instagram    String
+  youtube      String?
+  tiktok       String?
+  followers    Int
+  rate         Float
+
+  // New fields
+  topCreator   Boolean  @default(false)
+  respondsFast Boolean  @default(false)
+
+  comments     Comment[]
+  collaborations CollaborationRequest[]
+}
+
+model BrandProfile {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int      @unique
+  company     String
+  website     String
+  industry    String
+  description String
+
+  campaigns   Campaign[]
+  comments    Comment[]
+}
+
+model Campaign {
+  id          Int      @id @default(autoincrement())
+  brand       BrandProfile @relation(fields: [brandId], references: [id])
+  brandId     Int
+  title       String
+  description String
+  budget      Float
+  deadline    DateTime
+  createdAt   DateTime @default(now())
+
+  requests    CollaborationRequest[]
+}
+
+model CollaborationRequest {
+  id            Int               @id @default(autoincrement())
+  campaign      Campaign          @relation(fields: [campaignId], references: [id])
+  campaignId    Int
+  influencer    InfluencerProfile @relation(fields: [influencerId], references: [id])
+  influencerId  Int
+  status        RequestStatus     @default(PENDING)
+  message       String?
+  createdAt     DateTime          @default(now())
+}
+
+model Comment {
+  id           Int          @id @default(autoincrement())
+  influencer   InfluencerProfile @relation(fields: [influencerId], references: [id])
+  influencerId Int
+  brand        BrandProfile      @relation(fields: [brandId], references: [id])
+  brandId      Int
+  text         String
+  rating       Int          // 1 to 5
+  createdAt    DateTime     @default(now())
+}
+
+model Category {
+  id           Int                 @id @default(autoincrement())
+  name         String              @unique
+  influencers  InfluencerProfile[]
+}
+
+enum Role {
+  INFLUENCER
+  BRAND
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
