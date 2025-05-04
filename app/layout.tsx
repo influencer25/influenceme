@@ -1,4 +1,5 @@
 import './globals.css'
+import { AuthProvider } from './context/AuthContext'
 
 export const metadata = {
   title: 'InfluenceMe',
@@ -12,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }

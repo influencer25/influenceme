@@ -14,6 +14,7 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -62,6 +63,15 @@ export default function LoginPage() {
     }));
   };
 
+  const handleCreateAccount = (type: 'creator' | 'brand') => {
+    setShowPopup(false);
+    if (type === 'creator') {
+      router.push('/signup-creator');
+    } else {
+      router.push('/signup/brand');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -73,9 +83,12 @@ export default function LoginPage() {
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Or{' '}
-          <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <button
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+            onClick={() => setShowPopup(true)}
+          >
             create a new account
-          </Link>
+          </button>
         </p>
       </div>
 
@@ -207,6 +220,34 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="text-center">
+          {/* Removed duplicate 'Create New Account' button */}
+        </div>
+      </div>
+
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Join as</h3>
+            <div className="flex justify-center space-x-4">
+              <button
+                className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+                onClick={() => handleCreateAccount('creator')}
+              >
+                Creator
+              </button>
+              <button
+                className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition"
+                onClick={() => handleCreateAccount('brand')}
+              >
+                Brand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

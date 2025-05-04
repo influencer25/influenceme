@@ -7,6 +7,7 @@ import InfluencerGrid from './components/InfluencerGrid';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import UserMenu from './components/UserMenu';
+import { useAuth } from './context/AuthContext'; // Import the auth context
 
 const PLATFORMS = [
   { label: 'Any', value: '' },
@@ -79,6 +80,7 @@ const INFLUENCERS = [
 ];
 
 export default function Home() {
+  const { user } = useAuth(); // Get the user state from the auth context
   const [platform, setPlatform] = useState('');
   const [categoryInput, setCategoryInput] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -147,9 +149,9 @@ export default function Home() {
           <Link href="/login" className="text-gray-700 hover:text-indigo-600">
             Login
           </Link>
-          <Link href="/signup/influencer">
+          <Link href="/signup-creator">
             <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
-              Join as Influencer
+              Join as Creator
             </button>
           </Link>
           <Link href="/signup/brand">
@@ -157,7 +159,7 @@ export default function Home() {
               Join as Brand
             </button>
           </Link>
-          <UserMenu />
+          {user && <UserMenu />} {/* Only render UserMenu if user is logged in */}
         </div>
       </nav>
 
@@ -174,25 +176,23 @@ export default function Home() {
           <p className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl">
             Find and hire top Instagram, TikTok, YouTube, and UGC influencers to create unique content for your brand
           </p>
-          <form ref={searchBarRef}>
-            <SearchBar
-              platform={platform}
-              setPlatform={setPlatform}
-              categoryInput={categoryInput}
-              setCategoryInput={setCategoryInput}
-              selectedCategories={selectedCategories}
-              setSelectedCategories={setSelectedCategories}
-              showPlatformDropdown={showPlatformDropdown}
-              setShowPlatformDropdown={setShowPlatformDropdown}
-              showCategoryDropdown={showCategoryDropdown}
-              setShowCategoryDropdown={setShowCategoryDropdown}
-              handleCategorySelect={handleCategorySelect}
-              handleCategoryRemove={handleCategoryRemove}
-              handleSearch={handleSearch}
-              PLATFORMS={PLATFORMS}
-              POPULAR_CATEGORIES={POPULAR_CATEGORIES}
-            />
-          </form>
+          <SearchBar
+            platform={platform}
+            setPlatform={setPlatform}
+            categoryInput={categoryInput}
+            setCategoryInput={setCategoryInput}
+            selectedCategories={selectedCategories}
+            setSelectedCategories={setSelectedCategories}
+            showPlatformDropdown={showPlatformDropdown}
+            setShowPlatformDropdown={setShowPlatformDropdown}
+            showCategoryDropdown={showCategoryDropdown}
+            setShowCategoryDropdown={setShowCategoryDropdown}
+            handleCategorySelect={handleCategorySelect}
+            handleCategoryRemove={handleCategoryRemove}
+            handleSearch={handleSearch}
+            PLATFORMS={PLATFORMS}
+            POPULAR_CATEGORIES={POPULAR_CATEGORIES}
+          />
 
           {/* Grids */}
           {!viewAll && (
@@ -259,7 +259,7 @@ export default function Home() {
           <div className="flex justify-center">
             <button
               className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
-              onClick={() => searchBarRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
               Find Influencers
             </button>
