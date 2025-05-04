@@ -6,6 +6,7 @@ import SearchBar from './components/SearchBar';
 import InfluencerGrid from './components/InfluencerGrid';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import UserMenu from './components/UserMenu';
 
 const PLATFORMS = [
   { label: 'Any', value: '' },
@@ -86,6 +87,9 @@ export default function Home() {
   const [filtered, setFiltered] = useState(INFLUENCERS);
   const [viewAll, setViewAll] = useState<null | "youtube" | "instagram" | "tiktok">(null);
 
+  // Add a ref for the search bar
+  const searchBarRef = React.useRef<HTMLFormElement>(null);
+
   const filteredCategories = POPULAR_CATEGORIES.filter(cat =>
     cat.toLowerCase().includes(categoryInput.toLowerCase()) &&
     !selectedCategories.includes(cat)
@@ -104,17 +108,24 @@ export default function Home() {
   };
 
   // Filter influencers on search
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFiltered(
-      INFLUENCERS.filter(inf => {
-        const platformMatch = !platform || inf.platform === platform;
-        const categoryMatch =
-          selectedCategories.length === 0 ||
-          selectedCategories.every(cat => inf.categories.includes(cat));
-        return platformMatch && categoryMatch;
-      })
-    );
+    // Call the API to search influencers
+    try {
+      const response = await fetch('/api/influencers/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform, categories: selectedCategories }),
+      });
+      const data = await response.json();
+      if (response.ok && data.influencers) {
+        setFiltered(data.influencers);
+      } else {
+        setFiltered([]);
+      }
+    } catch (err) {
+      setFiltered([]);
+    }
   };
 
   // Platform-specific lists
@@ -128,11 +139,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
-      <nav className="navbar">
+      <nav className="navbar flex justify-between items-center px-4 py-2 bg-white shadow">
         <div className="flex items-center">
           <Image src="/img/logo.png" alt="Logo" width={40} height={40} />
         </div>
-        <div className="space-x-4">
+        <div className="flex items-center space-x-4">
           <Link href="/login" className="text-gray-700 hover:text-indigo-600">
             Login
           </Link>
@@ -146,6 +157,7 @@ export default function Home() {
               Join as Brand
             </button>
           </Link>
+          <UserMenu />
         </div>
       </nav>
 
@@ -162,31 +174,32 @@ export default function Home() {
           <p className="text-lg md:text-2xl text-gray-600 mb-8 max-w-2xl">
             Find and hire top Instagram, TikTok, YouTube, and UGC influencers to create unique content for your brand
           </p>
-          <SearchBar
-            platform={platform}
-            setPlatform={setPlatform}
-            categoryInput={categoryInput}
-            setCategoryInput={setCategoryInput}
-            selectedCategories={selectedCategories}
-            setSelectedCategories={setSelectedCategories}
-            showPlatformDropdown={showPlatformDropdown}
-            setShowPlatformDropdown={setShowPlatformDropdown}
-            showCategoryDropdown={showCategoryDropdown}
-            setShowCategoryDropdown={setShowCategoryDropdown}
-            filteredCategories={filteredCategories}
-            handleCategorySelect={handleCategorySelect}
-            handleCategoryRemove={handleCategoryRemove}
-            handleSearch={handleSearch}
-            PLATFORMS={PLATFORMS}
-            POPULAR_CATEGORIES={POPULAR_CATEGORIES}
-          />
+          <form ref={searchBarRef}>
+            <SearchBar
+              platform={platform}
+              setPlatform={setPlatform}
+              categoryInput={categoryInput}
+              setCategoryInput={setCategoryInput}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
+              showPlatformDropdown={showPlatformDropdown}
+              setShowPlatformDropdown={setShowPlatformDropdown}
+              showCategoryDropdown={showCategoryDropdown}
+              setShowCategoryDropdown={setShowCategoryDropdown}
+              handleCategorySelect={handleCategorySelect}
+              handleCategoryRemove={handleCategoryRemove}
+              handleSearch={handleSearch}
+              PLATFORMS={PLATFORMS}
+              POPULAR_CATEGORIES={POPULAR_CATEGORIES}
+            />
+          </form>
 
           {/* Grids */}
           {!viewAll && (
             <>
               <InfluencerGrid
                 title="Featured"
-                influencers={INFLUENCERS.slice(0, maxRow)}
+                influencers={filtered.slice(0, maxRow)}
                 showViewAll={false}
               />
               <InfluencerGrid
@@ -236,15 +249,19 @@ export default function Home() {
         </div>
       </main>
 
-      <div className="tiktok-banner bg-black text-white py-16">
+      {/* General Influencer Banner */}
+      <div className="influencer-banner bg-black text-white py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-8">TikTok Influencers</h2>
+          <h2 className="text-4xl font-bold text-center mb-8">Find the Perfect Influencer for Your Brand</h2>
           <p className="text-xl text-center mb-12 max-w-3xl mx-auto">
-            Connect with TikTok creators who can help your brand go viral. Our platform makes it easy to find and collaborate with TikTok influencers who align with your brand values and target audience.
+            Connect with top creators across all major platforms. Our platform makes it easy to find and collaborate with influencers who align with your brand values and target audience.
           </p>
           <div className="flex justify-center">
-            <button className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
-              Find TikTok Influencers
+            <button
+              className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+              onClick={() => searchBarRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Find Influencers
             </button>
           </div>
         </div>

@@ -41,11 +41,17 @@ model InfluencerProfile {
   id             Int                    @id @default(autoincrement())
   user           User                   @relation(fields: [userId], references: [id])
   userId         String                 @unique
-  location       String
+  city           String
+  country        String
+  title          String
+  gender         String
   bio            String
   instagram      String
+  instagramFollowers String
   youtube        String?
+  youtubeFollowers String
   tiktok         String?
+  tiktokFollowers String
   followers      Int
   rate           Float
   topCreator     Boolean                @default(false)
