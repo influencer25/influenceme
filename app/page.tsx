@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import SearchBar from './components/SearchBar';
 import InfluencerGrid from './components/InfluencerGrid';
+import FAQ from './components/FAQ';
+import Footer from './components/Footer';
 
 const PLATFORMS = [
   { label: 'Any', value: '' },
@@ -82,6 +84,7 @@ export default function Home() {
   const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [filtered, setFiltered] = useState(INFLUENCERS);
+  const [viewAll, setViewAll] = useState<null | "youtube" | "instagram" | "tiktok">(null);
 
   const filteredCategories = POPULAR_CATEGORIES.filter(cat =>
     cat.toLowerCase().includes(categoryInput.toLowerCase()) &&
@@ -114,10 +117,18 @@ export default function Home() {
     );
   };
 
+  // Platform-specific lists
+  const youtubeInfluencers = INFLUENCERS.filter((i) => i.platform === "youtube");
+  const instagramInfluencers = INFLUENCERS.filter((i) => i.platform === "instagram");
+  const tiktokInfluencers = INFLUENCERS.filter((i) => i.platform === "tiktok");
+
+  // For demo, show only 6 in each row unless "View All" is clicked
+  const maxRow = 6;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-8 py-4 bg-white shadow">
+      <nav className="navbar">
         <div className="flex items-center">
           <Image src="/img/logo.png" alt="Logo" width={40} height={40} />
         </div>
@@ -139,12 +150,12 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative flex flex-1 flex-col items-center justify-center text-center px-4 overflow-hidden">
+      <main className="hero-section">
         {/* Background logo_big_zoomed.png */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-10 z-0">
+        <div className="hero-bg">
           <Image src="/img/logo_big_zoomed.png" alt="Big Logo" width={600} height={600} className="object-contain" />
         </div>
-        <div className="relative z-10 w-full flex flex-col items-center">
+        <div className="hero-content">
           <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-indigo-600">
             Influencer Marketing Made Easy
           </h1>
@@ -169,9 +180,79 @@ export default function Home() {
             PLATFORMS={PLATFORMS}
             POPULAR_CATEGORIES={POPULAR_CATEGORIES}
           />
-          <InfluencerGrid filtered={filtered} />
+
+          {/* Grids */}
+          {!viewAll && (
+            <>
+              <InfluencerGrid
+                title="Featured"
+                influencers={INFLUENCERS.slice(0, maxRow)}
+                showViewAll={false}
+              />
+              <InfluencerGrid
+                title="YouTube"
+                influencers={youtubeInfluencers.slice(0, maxRow)}
+                showViewAll={youtubeInfluencers.length > maxRow}
+                onViewAll={() => setViewAll("youtube")}
+              />
+              <InfluencerGrid
+                title="Instagram"
+                influencers={instagramInfluencers.slice(0, maxRow)}
+                showViewAll={instagramInfluencers.length > maxRow}
+                onViewAll={() => setViewAll("instagram")}
+              />
+              <InfluencerGrid
+                title="TikTok"
+                influencers={tiktokInfluencers.slice(0, maxRow)}
+                showViewAll={tiktokInfluencers.length > maxRow}
+                onViewAll={() => setViewAll("tiktok")}
+              />
+            </>
+          )}
+          {viewAll === "youtube" && (
+            <InfluencerGrid
+              title="All YouTube Influencers"
+              influencers={youtubeInfluencers}
+              showViewAll={false}
+              onViewAll={() => setViewAll(null)}
+            />
+          )}
+          {viewAll === "instagram" && (
+            <InfluencerGrid
+              title="All Instagram Influencers"
+              influencers={instagramInfluencers}
+              showViewAll={false}
+              onViewAll={() => setViewAll(null)}
+            />
+          )}
+          {viewAll === "tiktok" && (
+            <InfluencerGrid
+              title="All TikTok Influencers"
+              influencers={tiktokInfluencers}
+              showViewAll={false}
+              onViewAll={() => setViewAll(null)}
+            />
+          )}
         </div>
       </main>
+
+      <div className="tiktok-banner bg-black text-white py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-8">TikTok Influencers</h2>
+          <p className="text-xl text-center mb-12 max-w-3xl mx-auto">
+            Connect with TikTok creators who can help your brand go viral. Our platform makes it easy to find and collaborate with TikTok influencers who align with your brand values and target audience.
+          </p>
+          <div className="flex justify-center">
+            <button className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+              Find TikTok Influencers
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <FAQ />
+
+      <Footer />
     </div>
   );
 } 

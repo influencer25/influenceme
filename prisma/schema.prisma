@@ -1,115 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  role      Role
-  createdAt DateTime  @default(now())
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  name         String?
+  role         Role          @default(USER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  lastLoginAt  DateTime?
+  isVerified   Boolean       @default(false)
+  socialLogins SocialLogin[]
 
   influencerProfile InfluencerProfile?
   brandProfile      BrandProfile?
 }
 
+model SocialLogin {
+  id         String   @id @default(cuid())
+  provider   String // "google", "facebook", "twitter"
+  providerId String // ID from the social provider
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, providerId])
+}
+
 model InfluencerProfile {
-  id           Int      @id @default(autoincrement())
-  user         User     @relation(fields: [userId], references: [id])
-  userId       Int      @unique
-  category     Category @relation(fields: [categoryId], references: [id])
-  categoryId   Int
-  location     String
-  bio          String
-  instagram    String
-  youtube      String?
-  tiktok       String?
-  followers    Int
-  rate         Float
-
-  // New fields
-  topCreator   Boolean  @default(false)
-  respondsFast Boolean  @default(false)
-
-  comments     Comment[]
+  id             Int                    @id @default(autoincrement())
+  user           User                   @relation(fields: [userId], references: [id])
+  userId         String                 @unique
+  location       String
+  bio            String
+  instagram      String
+  youtube        String?
+  tiktok         String?
+  followers      Int
+  rate           Float
+  topCreator     Boolean                @default(false)
+  respondsFast   Boolean                @default(false)
+  comments       Comment[]
   collaborations CollaborationRequest[]
-  categories     InfluencerCategory[]  // many-to-many relation
+  categories     InfluencerCategory[] // many-to-many relation
 }
 
 model BrandProfile {
-  id          Int      @id @default(autoincrement())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int      @unique
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @unique
   company     String
   website     String
   industry    String
   description String
-
   campaigns   Campaign[]
   comments    Comment[]
 }
 
 model Campaign {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   brand       BrandProfile @relation(fields: [brandId], references: [id])
   brandId     Int
   title       String
   description String
   budget      Float
   deadline    DateTime
-  createdAt   DateTime @default(now())
+  createdAt   DateTime     @default(now())
 
-  requests    CollaborationRequest[]
+  requests CollaborationRequest[]
 }
 
 model CollaborationRequest {
-  id            Int               @id @default(autoincrement())
-  campaign      Campaign          @relation(fields: [campaignId], references: [id])
-  campaignId    Int
-  influencer    InfluencerProfile @relation(fields: [influencerId], references: [id])
-  influencerId  Int
-  status        RequestStatus     @default(PENDING)
-  message       String?
-  createdAt     DateTime          @default(now())
+  id           Int               @id @default(autoincrement())
+  campaign     Campaign          @relation(fields: [campaignId], references: [id])
+  campaignId   Int
+  influencer   InfluencerProfile @relation(fields: [influencerId], references: [id])
+  influencerId Int
+  status       RequestStatus     @default(PENDING)
+  message      String?
+  createdAt    DateTime          @default(now())
 }
 
 model Comment {
-  id           Int          @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   influencer   InfluencerProfile @relation(fields: [influencerId], references: [id])
   influencerId Int
   brand        BrandProfile      @relation(fields: [brandId], references: [id])
   brandId      Int
   text         String
-  rating       Int          // 1 to 5
-  createdAt    DateTime     @default(now())
-  hidden       Boolean   @default(false)
+  rating       Int // 1 to 5
+  createdAt    DateTime          @default(now())
+  hidden       Boolean           @default(false)
 }
 
 model Category {
-  id           Int                 @id @default(autoincrement())
-  name         String              @unique
-  influencers  InfluencerCategory[]  // many-to-many relation
+  id          Int                  @id @default(autoincrement())
+  name        String               @unique
+  influencers InfluencerCategory[] // many-to-many relation
 }
 
 model InfluencerCategory {
   influencerId Int
   categoryId   Int
 
-  influencer   InfluencerProfile @relation(fields: [influencerId], references: [id])
-  category     Category           @relation(fields: [categoryId], references: [id])
+  influencer InfluencerProfile @relation(fields: [influencerId], references: [id])
+  category   Category          @relation(fields: [categoryId], references: [id])
 
   @@id([influencerId, categoryId])
 }
 
 enum Role {
+  USER
   INFLUENCER
   BRAND
+  ADMIN
 }
 
 enum RequestStatus {
@@ -119,42 +133,41 @@ enum RequestStatus {
 }
 
 model SocialProfile {
-  id            Int       @id @default(autoincrement())
-  userId        Int       // Link to internal user (influencer)
+  id            Int                @id @default(autoincrement())
+  userId        String // Link to internal user (influencer)
   platform      Platform
   handle        String
   displayName   String
   followers     Int
   profilePicUrl String
-  lastUpdated   DateTime  @default(now())
-
+  lastUpdated   DateTime           @default(now())
   posts         Post[]
   followerStats FollowerSnapshot[]
 }
 
 model Post {
-  id               Int      @id @default(autoincrement())
-  socialProfileId  Int
-  postId           String   // External post/video ID (from YouTube, IG, etc.)
-  title            String
-  thumbnailUrl     String
-  url              String
-  postedAt         DateTime
-  likes            Int
-  comments         Int
-  views            Int
-  shares           Int
+  id              Int      @id @default(autoincrement())
+  socialProfileId Int
+  postId          String // External post/video ID (from YouTube, IG, etc.)
+  title           String
+  thumbnailUrl    String
+  url             String
+  postedAt        DateTime
+  likes           Int
+  comments        Int
+  views           Int
+  shares          Int
 
-  socialProfile    SocialProfile @relation(fields: [socialProfileId], references: [id])
+  socialProfile SocialProfile @relation(fields: [socialProfileId], references: [id])
 }
 
 model FollowerSnapshot {
-  id              Int       @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   socialProfileId Int
   followers       Int
-  capturedAt      DateTime  @default(now())
+  capturedAt      DateTime @default(now())
 
-  socialProfile   SocialProfile @relation(fields: [socialProfileId], references: [id])
+  socialProfile SocialProfile @relation(fields: [socialProfileId], references: [id])
 }
 
 enum Platform {
@@ -164,11 +177,11 @@ enum Platform {
 }
 
 model ApiCredential {
-  id            Int       @id @default(autoincrement())
-  userId        Int       // Link to internal user (influencer)
-  platform      Platform
-  accessToken   String    // Encrypt in production
-  refreshToken  String?   // Optional, if the platform supports
-  expiresAt     DateTime?
-  createdAt     DateTime  @default(now())
+  id           Int       @id @default(autoincrement())
+  userId       String // Link to internal user (influencer)
+  platform     Platform
+  accessToken  String // Encrypt in production
+  refreshToken String? // Optional, if the platform supports
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
 }
